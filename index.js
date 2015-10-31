@@ -21,6 +21,8 @@ app.post('/slack/command/reply', function(req, res) {
         coach: true,
       });
 
+    res.send();
+
   } else {
     res
       .status(403)
