@@ -13,7 +13,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 ref
   .child('incoming-messages')
-  .orderBy('timestamp')
+  .orderByChild('timestamp')
   .startAt(new Date().getTime())
   .on('child_added', function(snapshot) {
     var message = snapshot.val();
