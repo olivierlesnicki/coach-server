@@ -11,6 +11,22 @@ var ref = new Firebase(FIREBASE_REF);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+ref
+  .child('incoming-messages')
+  .orderBy('timestamp')
+  .startAt(new Date().getTime())
+  .on('child_added', function(snapshot) {
+    var message = snapshot.val();
+    ref
+      .child('conversations')
+      .child(message.from)
+      .push({
+        text: message.text,
+        timestamp: Firebase.ServerValue.TIMESTAMP,
+        coach: false,
+      });
+  });
+
 app.post('/slack/command/reply', function(req, res) {
   if (req.body.token === SLACK_COMMAND_REPLY_TOKEN) {
     ref
@@ -18,6 +34,7 @@ app.post('/slack/command/reply', function(req, res) {
       .child(req.body.channel_name)
       .push({
         text: req.body.text,
+        timestamp: Firebase.ServerValue.TIMESTAMP,
         coach: true,
       });
 
