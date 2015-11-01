@@ -11,6 +11,10 @@ var FIREBASE_REF = process.env.FIREBASE_REF;
 var app = express();
 var ref = new Firebase(FIREBASE_REF);
 
+function createChannel(channelName) {
+
+}
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -27,7 +31,8 @@ ref
       body: {
         token: SLACK_WEB_API_TOKEN,
         name: message.text,
-      }
+      },
+      json: true,
     }).then(() => {
       return Promise.resolve();
     }, () => {
