@@ -21,12 +21,14 @@ ref
     var message = snapshot.val();
 
     request({
+      method: 'POST',
       uri: SLACK_INCOMING_WEBHOOK_COACH_URL,
       body: {
         username: message.from,
         text: message.text,
         channel: '#' + message.from,
       },
+      json: true,
     });
 
     ref
