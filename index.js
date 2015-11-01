@@ -43,12 +43,14 @@ app.post('/slack/command/reply', function(req, res) {
   if (req.body.token === SLACK_COMMAND_REPLY_TOKEN) {
 
     request({
+      method: 'POST',
       uri: SLACK_INCOMING_WEBHOOK_COACH_URL,
       body: {
         username: 'coach',
         text: req.body.text,
         channel: '#' + req.body.channel_name,
       },
+      json: true,
     });
 
     ref
