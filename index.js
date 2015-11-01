@@ -11,10 +11,6 @@ var FIREBASE_REF = process.env.FIREBASE_REF;
 var app = express();
 var ref = new Firebase(FIREBASE_REF);
 
-function createChannel(channelName) {
-
-}
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -67,39 +63,8 @@ ref
 
   });
 
-app.post('/slack/command/reply', function(req, res) {
-  if (req.body.token === SLACK_COMMAND_REPLY_TOKEN) {
-
-    // Post the reply as coach on slack
-    request({
-      method: 'POST',
-      uri: SLACK_INCOMING_WEBHOOK_COACH_URL,
-      body: {
-        username: 'coach',
-        text: req.body.text,
-        channel: '#' + req.body.channel_name,
-      },
-      json: true,
-    });
-
-    // Store the reply in the thread
-    ref
-      .child('threads')
-      .child(req.body.channel_name)
-      .push({
-        text: req.body.text,
-        timestamp: Firebase.ServerValue.TIMESTAMP,
-        coach: true,
-      });
-
-    res.send();
-
-  } else {
-    res
-      .status(403)
-      .send();
-  }
-});
+app.use('/slack/command/reply', require('./lib/routes/slack/command/reply'));
+app.use('/login', require('./lib/routes/login'));
 
 var server = app.listen(process.env.PORT || 9000, function() {
   var host = server.address().address;
