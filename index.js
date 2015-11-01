@@ -1,8 +1,10 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var Firebase = require('firebase');
+var request = require('request-promise');
 
 var SLACK_COMMAND_REPLY_TOKEN = process.env.SLACK_COMMAND_REPLY_TOKEN;
+var SLACK_INCOMING_WEBHOOK_COACH_URL = process.env.SLACK_INCOMING_WEBHOOK_COACH_URL;
 var FIREBASE_REF = process.env.FIREBASE_REF;
 
 var app = express();
@@ -17,6 +19,16 @@ ref
   .startAt(new Date().getTime())
   .on('child_added', function(snapshot) {
     var message = snapshot.val();
+
+    request({
+      uri: SLACK_INCOMING_WEBHOOK_COACH_URL,
+      body: {
+        username: message.from,
+        text: message.text,
+        channel: '#' + message.from,
+      },
+    });
+
     ref
       .child('conversations')
       .child(message.from)
@@ -29,6 +41,16 @@ ref
 
 app.post('/slack/command/reply', function(req, res) {
   if (req.body.token === SLACK_COMMAND_REPLY_TOKEN) {
+
+    request({
+      uri: SLACK_INCOMING_WEBHOOK_COACH_URL,
+      body: {
+        username: 'coach',
+        text: req.body.text,
+        channel: '#' + req.body.channel_name,
+      },
+    });
+
     ref
       .child('conversations')
       .child(req.body.channel_name)
