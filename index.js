@@ -63,6 +63,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //
 //   });
 
+// import the queues
+require('./lib/queues/messages');
+
+// import the routes
 app.use('/slack/command/reply', require('./lib/routes/slack/command/reply'));
 app.use('/login', require('./lib/routes/login'));
 
