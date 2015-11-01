@@ -5,6 +5,7 @@ var request = require('request-promise');
 
 var SLACK_COMMAND_REPLY_TOKEN = process.env.SLACK_COMMAND_REPLY_TOKEN;
 var SLACK_INCOMING_WEBHOOK_COACH_URL = process.env.SLACK_INCOMING_WEBHOOK_COACH_URL;
+var SLACK_WEB_API_TOKEN = process.env.SLACK_WEB_API_TOKEN;
 var FIREBASE_REF = process.env.FIREBASE_REF;
 
 var app = express();
@@ -22,28 +23,49 @@ ref
 
     request({
       method: 'POST',
-      uri: SLACK_INCOMING_WEBHOOK_COACH_URL,
+      uri: 'https://slack.com/api/channels.create',
       body: {
-        username: message.from,
-        text: message.text,
-        channel: '#' + message.from,
-      },
-      json: true,
+        token: SLACK_WEB_API_TOKEN,
+        name: message.text,
+      }
+    }).then(() => {
+      return Promise.resolve();
+    }, () => {
+      return new Promise((resolve, reject) => {
+        console.log(arguments);
+      });
+    }).then(() => {
+
+      // Post the message as the user on slack
+      request({
+        method: 'POST',
+        uri: SLACK_INCOMING_WEBHOOK_COACH_URL,
+        body: {
+          username: message.from,
+          text: message.text,
+          channel: '#' + message.from,
+        },
+        json: true,
+      });
+
+      // Store the message in the thread
+      ref
+        .child('threads')
+        .child(message.from)
+        .push({
+          text: message.text,
+          timestamp: Firebase.ServerValue.TIMESTAMP,
+          coach: false,
+        });
+
     });
 
-    ref
-      .child('conversations')
-      .child(message.from)
-      .push({
-        text: message.text,
-        timestamp: Firebase.ServerValue.TIMESTAMP,
-        coach: false,
-      });
   });
 
 app.post('/slack/command/reply', function(req, res) {
   if (req.body.token === SLACK_COMMAND_REPLY_TOKEN) {
 
+    // Post the reply as coach on slack
     request({
       method: 'POST',
       uri: SLACK_INCOMING_WEBHOOK_COACH_URL,
@@ -55,8 +77,9 @@ app.post('/slack/command/reply', function(req, res) {
       json: true,
     });
 
+    // Store the reply in the thread
     ref
-      .child('conversations')
+      .child('threads')
       .child(req.body.channel_name)
       .push({
         text: req.body.text,
